@@ -286,13 +286,13 @@ fn real_inputs_of_method(method: &ZngurMethod, ty: &RustType) -> (Vec<RustType>,
     (rusty_inputs, inputs)
 }
 
-fn match_to_generic<'a, 'b>(ty: &'a RustType, generic: &'b RustType, mapping: &mut HashMap<&'b str, &'a RustType>) -> bool {
+fn matches_generic<'a, 'b>(ty: &'a RustType, generic: &'b RustType, mapping: &mut HashMap<&'b str, &'a RustType>) -> bool {
     fn match_lists<'a, 'b>(v1: &'a [RustType], v2: &'b [RustType], mapping: &mut HashMap<&'b str, &'a RustType>) -> bool {
         v1.len() == v2.len() && match_iters(v1, v2, mapping)
     }
 
     fn match_iters<'a, 'b>(i1: impl IntoIterator<Item = &'a RustType>,  i2: impl IntoIterator<Item = &'b RustType>, mapping: &mut HashMap<&'b str, &'a RustType>) -> bool {
-        i1.into_iter().zip(i2).all(|(ty1, ty2)| match_to_generic(ty1, ty2, mapping))
+        i1.into_iter().zip(i2).all(|(ty1, ty2)| matches_generic(ty1, ty2, mapping))
     }
 
     match (ty, generic) {
@@ -302,9 +302,9 @@ fn match_to_generic<'a, 'b>(ty: &'a RustType, generic: &'b RustType, mapping: &m
         }
         (RustType::Primitive(p1), RustType::Primitive(p2)) => p1 == p2,
         (RustType::Ref(m1, t1), RustType::Ref(m2, t2)) 
-        | (RustType::Raw(m1, t1), RustType::Raw(m2, t2)) => m1 == m2 && match_to_generic(t1, t2, mapping),
+        | (RustType::Raw(m1, t1), RustType::Raw(m2, t2)) => m1 == m2 && matches_generic(t1, t2, mapping),
         (RustType::Boxed(t1), RustType::Boxed(t2))
-        | (RustType::Slice(t1), RustType::Slice(t2)) => match_to_generic(t1, t2, mapping),
+        | (RustType::Slice(t1), RustType::Slice(t2)) => matches_generic(t1, t2, mapping),
         (RustType::Dyn(_, _), RustType::Dyn(_, _)) => todo!(),
         (RustType::Tuple(tys1), RustType::Tuple(tys2)) => match_lists(tys1, tys2, mapping),
         (RustType::Adt(adt1), RustType::Adt(adt2)) => {
@@ -312,7 +312,7 @@ fn match_to_generic<'a, 'b>(ty: &'a RustType, generic: &'b RustType, mapping: &m
             adt1.path == adt2.path && match_lists(&adt1.generics, &adt2.generics, mapping) 
             && adt1.named_generics.len() == adt2.named_generics.len()
             && adt1.named_generics.iter().zip(adt2.named_generics.iter())
-                .all(|((n1, t1), (n2, t2))| n1 == n2 && match_to_generic(t1, t2, mapping))
+                .all(|((n1, t1), (n2, t2))| n1 == n2 && matches_generic(t1, t2, mapping))
         }
         (_, _) => false
     }
@@ -385,7 +385,7 @@ fn augment_type_with_impls(mut ty: ZngurType, impls: &[ZngurType], defined_types
 
     for zng_impl in impls {
         let mut mapping = HashMap::new();
-        if !match_to_generic(&ty.ty, &zng_impl.ty, &mut mapping) {
+        if !matches_generic(&ty.ty, &zng_impl.ty, &mut mapping) {
             continue;
         }
         
