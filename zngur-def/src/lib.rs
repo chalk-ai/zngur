@@ -159,7 +159,7 @@ pub enum RustType {
     Dyn(RustTrait, Vec<String>),
     Tuple(Vec<RustType>),
     Adt(RustPathAndGenerics),
-    TypeVar(String)
+    TypeVar(String),
 }
 
 impl RustType {
