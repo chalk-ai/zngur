@@ -120,7 +120,7 @@ enum ParsedLayoutPolicy<'a> {
 enum ParsedTypeItem<'a> {
     Layout(Span, ParsedLayoutPolicy<'a>),
     Traits(Vec<Spanned<ZngurWellknownTrait>>),
-    CopyConstructByClone,
+    IsCopyConstructibleByClone,
     Constructor {
         name: Option<&'a str>,
         args: ParsedConstructorArgs<'a>,
@@ -196,7 +196,7 @@ impl ParsedItem<'_> {
                 let mut layout_span = None;
                 let mut cpp_value = None;
                 let mut cpp_ref = None;
-                let mut copy_construct_by_clone = false;
+                let mut is_copy_constructible_by_clone = false;
                 for item in items {
                     let item_span = item.span;
                     let item = item.inner;
@@ -242,8 +242,8 @@ impl ParsedItem<'_> {
                         ParsedTypeItem::Traits(tr) => {
                             wellknown_traits.extend(tr);
                         }
-                        ParsedTypeItem::CopyConstructByClone => {
-                            copy_construct_by_clone = true;
+                        ParsedTypeItem::IsCopyConstructibleByClone => {
+                            is_copy_constructible_by_clone = true;
                         }
                         ParsedTypeItem::Constructor { name, args } => {
                             constructors.push(ZngurConstructor {
@@ -334,7 +334,7 @@ impl ParsedItem<'_> {
                     constructors,
                     cpp_value,
                     cpp_ref,
-                    copy_construct_by_clone,
+                    is_copy_constructible_by_clone,
                 };
                 if vars.is_some() {
                     r.impls.push(type_or_impl);
@@ -1055,14 +1055,14 @@ fn type_or_impl_item<'a>()
             })
             .map(|x| ParsedTypeItem::CppRef { cpp_type: x });
 
-        let copy_constructor_by_clone =
-            just([Token::Sharp, Token::Ident("copy_construct_by_clone")])
-                .to(ParsedTypeItem::CopyConstructByClone);
+        let is_copy_constructible_by_clone =
+            just([Token::Sharp, Token::Ident("copy_constructible_by_clone")])
+                .to(ParsedTypeItem::IsCopyConstructibleByClone);
 
         choice((
             layout,
             traits,
-            copy_constructor_by_clone,
+            is_copy_constructible_by_clone,
             constructor,
             cpp_value,
             cpp_ref,

@@ -43,7 +43,7 @@ impl ZngurGenerator {
             constructors: vec![],
             cpp_value: None,
             cpp_ref: None,
-            copy_construct_by_clone: false,
+            is_copy_constructible_by_clone: false,
         });
         let mut cpp_file = CppFile::default();
         cpp_file.additional_includes = zng.additional_includes;
@@ -210,7 +210,7 @@ impl ZngurGenerator {
                 } else {
                     None
                 },
-                is_copy_construct_from_clone: ty_def.copy_construct_by_clone,
+                is_copy_constructible_by_clone: ty_def.is_copy_constructible_by_clone,
             });
         }
         for func in zng.funcs {
@@ -444,8 +444,8 @@ fn augment_type_with_impls(
         if !matches_generic(&ty.ty, &zng_impl.ty, &mut mapping) {
             continue;
         }
-        if zng_impl.copy_construct_by_clone {
-            ty.copy_construct_by_clone = true
+        if zng_impl.is_copy_constructible_by_clone {
+            ty.is_copy_constructible_by_clone = true
         }
         // For these we just choose the first match layout. Worst case is a compile error
         ty.layout = ty.layout.or(zng_impl.layout);

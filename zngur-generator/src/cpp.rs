@@ -482,7 +482,7 @@ pub struct CppTypeDefinition {
     pub wellknown_traits: Vec<ZngurWellknownTraitData>,
     pub cpp_value: Option<(String, String)>,
     pub cpp_ref: Option<String>,
-    pub is_copy_construct_from_clone: bool,
+    pub is_copy_constructible_by_clone: bool,
 }
 
 impl CppTypeDefinition {
@@ -689,7 +689,7 @@ inline size_t __zngur_internal_size_of< {ref_kind} < {ty} > >() {{
         let is_copy = self
             .wellknown_traits
             .contains(&ZngurWellknownTraitData::Copy);
-        let is_copy_construct_from_clone = self.is_copy_construct_from_clone;
+        let is_copy_constructible_by_clone = self.is_copy_constructible_by_clone;
         writeln!(
             state,
             r#"
@@ -838,7 +838,7 @@ private:
     "#,
                             ty = self.ty.path.name(),
                         )?;
-                    } else if is_copy_construct_from_clone {
+                    } else if is_copy_constructible_by_clone {
                         let drop_in_place = self
                             .wellknown_traits
                             .iter()
