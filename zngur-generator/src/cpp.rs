@@ -1558,7 +1558,7 @@ namespace rust {
     // All (const) pointers have the same impl for __zngur_internal_data_ptr, __zngur_internal_assume_init, 
     // and __zngur_internal_assume_deinit
     template<typename T>
-    inline uint8_t* __zngur_internal_data_ptr(T const& t) {{
+    inline uint8_t* __zngur_internal_data_ptr(T* const& t) {{
         return const_cast<uint8_t*>(reinterpret_cast<const uint8_t*>(&t));
     }}
 

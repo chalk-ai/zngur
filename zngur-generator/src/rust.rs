@@ -108,10 +108,16 @@ impl IntoCpp for RustType {
                 generic_args: vec![s.into_cpp()],
                 pointer_mutability: None,
             },
-            RustType::Raw(mutability, ty) => CppType {
-                pointer_mutability: Some(*mutability),
-                ..ty.into_cpp()
-            },
+            RustType::Raw(mutability, ty) => {
+                let inner = ty.into_cpp();
+                if inner.pointer_mutability.is_some() {
+                    panic!("Nested pointer types are not supported")
+                }
+                CppType {
+                    pointer_mutability: Some(*mutability),
+                    ..inner
+                }
+            }
             RustType::Adt(pg) => pg.into_cpp(),
             RustType::Tuple(v) => {
                 if v.is_empty() {
