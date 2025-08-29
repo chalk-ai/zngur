@@ -90,7 +90,7 @@ impl CppType {
     }
 
     fn emit_specialization_decl(&self, state: &mut State) -> std::fmt::Result {
-        if let Some(_) = &self.pointer_mutability {
+        if self.pointer_mutability.is_some() {
             panic!("Cannot emit specialization for pointer type: {}", self)
         }
         if self.generic_args.is_empty() {
