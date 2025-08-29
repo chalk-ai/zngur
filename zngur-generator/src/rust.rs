@@ -28,6 +28,7 @@ impl IntoCpp for RustPathAndGenerics {
                 .chain(named_generics)
                 .map(|x| x.into_cpp())
                 .collect(),
+            pointer_mutability: None,
         }
     }
 }
@@ -47,6 +48,7 @@ impl IntoCpp for RustTrait {
                     .chain(Some(&**output))
                     .map(|x| x.into_cpp())
                     .collect(),
+                pointer_mutability: None,
             },
         }
     }
@@ -91,6 +93,7 @@ impl IntoCpp for RustType {
             RustType::Boxed(t) => CppType {
                 path: CppPath::from("rust::Box"),
                 generic_args: vec![t.into_cpp()],
+                pointer_mutability: None,
             },
             RustType::Ref(m, t) => CppType {
                 path: match m {
@@ -98,12 +101,17 @@ impl IntoCpp for RustType {
                     Mutability::Not => CppPath::from("rust::Ref"),
                 },
                 generic_args: vec![t.into_cpp()],
+                pointer_mutability: None,
             },
             RustType::Slice(s) => CppType {
                 path: CppPath::from("rust::Slice"),
                 generic_args: vec![s.into_cpp()],
+                pointer_mutability: None,
             },
-            RustType::Raw(_, _) => todo!(),
+            RustType::Raw(mutability, ty) => CppType {
+                pointer_mutability: Some(*mutability),
+                ..ty.into_cpp()
+            },
             RustType::Adt(pg) => pg.into_cpp(),
             RustType::Tuple(v) => {
                 if v.is_empty() {
@@ -112,6 +120,7 @@ impl IntoCpp for RustType {
                 CppType {
                     path: CppPath::from("rust::Tuple"),
                     generic_args: v.into_iter().map(|x| x.into_cpp()).collect(),
+                    pointer_mutability: None,
                 }
             }
             RustType::Dyn(tr, marker_bounds) => {
@@ -126,6 +135,7 @@ impl IntoCpp for RustType {
                                 .map(|x| CppType::from(&*format!("rust::{x}"))),
                         )
                         .collect(),
+                    pointer_mutability: None,
                 }
             }
             RustType::TypeVar(_) => unreachable!(),
